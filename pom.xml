@@ -103,6 +103,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>finance-tracker</finalName>
 	</build>
 
 </project>
