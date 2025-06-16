@@ -1,5 +1,6 @@
 package com.finance.tracker.arfath.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.finance.tracker.arfath.utils.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +20,7 @@ public class Transaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"transactions", "password", "roles"})
     private User user;
 
     private BigDecimal amount;
