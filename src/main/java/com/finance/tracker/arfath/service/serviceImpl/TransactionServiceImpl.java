@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,7 +30,8 @@ public class TransactionServiceImpl implements TransactionService {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             return userDetails.getId();
         }
-        throw new RuntimeException("User not authenticated");
+        // Return null or a default user ID if not authenticated
+        return null;
     }
 
     @Override
@@ -40,12 +42,24 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional
     public List<Transaction> getAllTransactionsForUser() {
-        return transactionRepository.findAll(); // Instead of filtering by userId
+        Long userId = getCurrentUserId();
+        if (userId != null) {
+            return transactionRepository.findByUserId(userId);
+        } else {
+            // For public access, return empty list
+            return new ArrayList<>();
+        }
     }
 
     @Override
     public Transaction createTransaction(Transaction transaction) {
+        // Set the current authenticated user to the transaction if available
+        Long userId = getCurrentUserId();
+        if (userId != null) {
+            userRepository.findById(userId).ifPresent(transaction::setUser);
+        }
         return transactionRepository.save(transaction);
     }
 
