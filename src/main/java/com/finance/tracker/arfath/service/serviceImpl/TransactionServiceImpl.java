@@ -3,9 +3,11 @@ package com.finance.tracker.arfath.service.serviceImpl;
 import com.finance.tracker.arfath.model.Transaction;
 import com.finance.tracker.arfath.repository.TransactionRepository;
 import com.finance.tracker.arfath.repository.UserRepository;
-
+import com.finance.tracker.arfath.security.services.UserDetailsImpl;
 import com.finance.tracker.arfath.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +22,14 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
-    // Placeholder: Implement this method to get current logged-in user ID
+    // Get current logged-in user ID from Spring Security context
     private Long getCurrentUserId() {
-
-        return 1L;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            return userDetails.getId();
+        }
+        throw new RuntimeException("User not authenticated");
     }
 
     @Override

@@ -1,9 +1,12 @@
 package com.finance.tracker.arfath.controller;
 
 import com.finance.tracker.arfath.model.dto.DashboardResponse;
+import com.finance.tracker.arfath.security.services.UserDetailsImpl;
 import com.finance.tracker.arfath.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.YearMonth;
@@ -20,7 +23,8 @@ public class DashboardController {
     public DashboardResponse getDashboard(
             @RequestParam(name = "month") @DateTimeFormat(pattern = "yyyy-MM") YearMonth month
     ) {
-        // Using a hardcoded userId of 1 for now
-        return dashboardService.getDashboard(1L, month);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return dashboardService.getDashboard(userDetails.getId(), month);
     }
 }
