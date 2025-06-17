@@ -11,6 +11,7 @@ import com.finance.tracker.arfath.security.jwt.JwtUtils;
 import com.finance.tracker.arfath.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -73,14 +74,14 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+                    .status(HttpStatus.CONFLICT)
+                    .body(new MessageResponse("UsernameTaken"));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+                    .status(HttpStatus.CONFLICT)
+                    .body(new MessageResponse("EmailTaken"));
         }
         
         // Additional password validation
