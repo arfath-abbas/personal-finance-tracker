@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -45,16 +46,17 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginRequest.getIdentifier(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
-        
+
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        
-        // Get user details including first and last name
-        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
-        
+
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .or(() -> userRepository.findByEmail(userDetails.getUsername()))
+                .orElseThrow();
+
         return ResponseEntity.ok(new JwtResponse(
                 jwt,
                 userDetails.getId(),
@@ -63,8 +65,9 @@ public class AuthController {
                 user.getFirstName(),
                 user.getLastName(),
                 userDetails.getAuthorities().stream()
-                        .map(item -> item.getAuthority())
-                        .collect(Collectors.toList())));
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toList())
+        ));
     }
 
     @Autowired
